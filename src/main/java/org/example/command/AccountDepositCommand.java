@@ -33,7 +33,7 @@ public class AccountDepositCommand implements OperationCommand {
             System.out.println("Введите сумму для пополнения: ");
             long amount = Long.parseLong(scanner.nextLine());
             accountService.deposit(account, amount);
-            System.out.printf("счёт с id %s пополнен на %s", id, amount);
+            System.out.printf("счёт с id %s пополнен на %s%n", id, amount);
         } catch (NoSuchElementException e) {
             System.out.printf("счёт с таким id не найден : %s%n", id);
         }

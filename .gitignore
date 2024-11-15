@@ -5,7 +5,7 @@ shelterFX.iml
 .mvn
 target/
 
-./src/test/ 
+src/test/
 
 
 target/
