@@ -1,8 +1,8 @@
 package org.example.command;
 
 import org.example.constants.ConsoleOperationType;
+import org.example.model.Account;
 import org.example.service.AccountService;
-import org.example.service.UserService;
 import org.springframework.stereotype.Component;
 
 import java.util.NoSuchElementException;
@@ -11,15 +11,12 @@ import java.util.Scanner;
 @Component
 public class AccountCreateCommand implements OperationCommand {
 
-    public final UserService userService;
     public final AccountService accountService;
     private final Scanner scanner;
 
-    public AccountCreateCommand(UserService userService,
-                                AccountService accountService,
+    public AccountCreateCommand(AccountService accountService,
                                 Scanner scanner) {
         this.scanner = scanner;
-        this.userService = userService;
         this.accountService = accountService;
     }
 
@@ -28,13 +25,11 @@ public class AccountCreateCommand implements OperationCommand {
         System.out.println("Введите id пользователя для создания нового счёта: ");
         int id = Integer.parseInt(scanner.nextLine());
         try {
-            var user = userService.findById(id);
-            var account = accountService.create(id);
-            userService.addAccountToUser(account, user);
-            System.out.printf("Новый аккаунт создан с id %s для пользователя %s%n",
-                    account.getId(), user.getLogin());
-        } catch (NoSuchElementException e) {
-            System.out.printf("Пользователь с таким id не найден : %s%n%n", id);
+            Account account = accountService.create(id);
+            System.out.printf("Новый аккаунт создан с id %s для пользователя с id %s%n",
+                    account.getId(), account.getUserId());
+        } catch (IllegalArgumentException | NoSuchElementException e) {
+            System.out.println(e.getMessage());
         }
     }
 

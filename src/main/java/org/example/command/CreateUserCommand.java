@@ -1,25 +1,23 @@
 package org.example.command;
 
 import org.example.constants.ConsoleOperationType;
-import org.example.service.AccountService;
+import org.example.model.User;
 import org.example.service.UserService;
 import org.springframework.stereotype.Component;
 
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 @Component
 public class CreateUserCommand implements OperationCommand {
 
     public final UserService userService;
-    public final AccountService accountService;
     private final Scanner scanner;
 
     public CreateUserCommand(UserService userService,
-                             AccountService accountService,
                              Scanner scanner) {
         this.scanner = scanner;
         this.userService = userService;
-        this.accountService = accountService;
     }
 
     @Override
@@ -27,13 +25,11 @@ public class CreateUserCommand implements OperationCommand {
         System.out.println("Придумайте имя учётной записи");
         String login = scanner.nextLine();
         try {
-            var newUser = userService.createUser(login);
-            var initAccount = accountService.create(newUser.getId());
-            userService.addAccountToUser(initAccount, newUser);
+            User newUser = userService.createUser(login);
             System.out.println("Пользователь создан");
             System.out.println(newUser);
-        } catch (IllegalArgumentException e) {
-            System.out.printf("Имя учётной записи занято: %s%n", login);
+        } catch (IllegalArgumentException | NoSuchElementException e) {
+            System.out.println(e.getMessage());
         }
     }
 

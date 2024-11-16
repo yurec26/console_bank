@@ -2,7 +2,6 @@ package org.example.command;
 
 import org.example.constants.ConsoleOperationType;
 import org.example.service.AccountService;
-import org.example.service.UserService;
 import org.springframework.stereotype.Component;
 
 import java.util.NoSuchElementException;
@@ -11,15 +10,13 @@ import java.util.Scanner;
 @Component
 public class AccountDepositCommand implements OperationCommand {
 
-    public final UserService userService;
+
     public final AccountService accountService;
     private final Scanner scanner;
 
-    public AccountDepositCommand(UserService userService,
-                                 AccountService accountService,
+    public AccountDepositCommand(AccountService accountService,
                                  Scanner scanner) {
         this.scanner = scanner;
-        this.userService = userService;
         this.accountService = accountService;
     }
 
@@ -29,13 +26,12 @@ public class AccountDepositCommand implements OperationCommand {
         System.out.println("Введите id счёта для пополнения: ");
         int id = Integer.parseInt(scanner.nextLine());
         try {
-            var account = accountService.findAccountById(id);
             System.out.println("Введите сумму для пополнения: ");
             long amount = Long.parseLong(scanner.nextLine());
-            accountService.deposit(account, amount);
+            accountService.deposit(id, amount);
             System.out.printf("счёт с id %s пополнен на %s%n", id, amount);
-        } catch (NoSuchElementException e) {
-            System.out.printf("счёт с таким id не найден : %s%n", id);
+        } catch (IllegalArgumentException | NoSuchElementException e) {
+            System.out.println(e.getMessage());
         }
     }
 
