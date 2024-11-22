@@ -27,9 +27,16 @@ public class OperationsConsoleListener implements Runnable {
             System.out.println("EXIT");
             String choice = scanner.nextLine();
             if (choice.equals("EXIT")) break;
-            commandMap.entrySet().stream().filter(s -> String.valueOf(s.getKey()).equals(choice))
-                    .findAny().ifPresentOrElse(s -> s.getValue().execute(),
-                            () -> System.out.println("Операция не найдена, попробуйте ещё"));
+            try {
+                ConsoleOperationType operation = ConsoleOperationType.valueOf(choice);
+                if (commandMap.containsKey(operation)) {
+                    commandMap.get(operation).execute();
+                } else {
+                    System.out.println("Операция не найдена, попробуйте ещё");
+                }
+            } catch (IllegalArgumentException e) {
+                System.out.println("Операция не найдена, попробуйте ещё");
+            }
             System.out.println("__________________________________________");
         }
     }

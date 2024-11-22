@@ -2,60 +2,61 @@ package org.example.service;
 
 import org.example.model.Account;
 import org.example.model.User;
+import org.example.util.TransactionHelper;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 
 @Component
 public class UserService {
 
-    private final List<User> userList = new ArrayList<>();
 
-    private static int idCounter = 1;
     private final AccountService accountService;
+    private final TransactionHelper transactionHelper;
 
-    public UserService(AccountService accountService) {
+
+    public UserService(AccountService accountService,
+                       TransactionHelper transactionHelper) {
         this.accountService = accountService;
+        this.transactionHelper = transactionHelper;
     }
 
     public List<User> getAll() {
-        return userList;
+        return transactionHelper.execute(session -> session
+                .createQuery("SELECT s FROM User s", User.class)
+                .list());
     }
 
     public User createUser(String login) {
-        userList.stream().filter(s -> s.getLogin().equals(login)).findAny()
-                .ifPresent(s -> {
-                    throw new IllegalArgumentException("Имя учётной записи занято");
-                });
-        var newUser = new User(idCounter, login, new ArrayList<>());
-        userList.add(newUser);
-        accountService.create(newUser.getId());
-        idCounter++;
-        return newUser;
+        return transactionHelper.execute(session -> {
+            try {
+                User user = new User(login);
+                session.persist(user);
+                Account account = accountService.create(user);
+                session.persist(account);
+                session.flush();
+                session.refresh(user);
+                return user;
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Такой логин уже занят");
+            }
+        });
     }
 
-    public void closeAccount(User user, Account account) {
-        user.getAccountList().remove(account);
+    public Account addAccountToUser(Long userId) {
+        return transactionHelper.execute(session -> {
+            User user = session.get(User.class, userId);
+            if (user != null){
+                Account account = accountService.create(user);
+                session.persist(account);
+                session.merge(user);
+                session.flush();
+                session.refresh(account);
+                return account;
+            } else {
+                throw new IllegalArgumentException("Такой пользователь не найден");
+            }
+        });
     }
-
-    public void addAccountToUser(Account account, User user) {
-        user.getAccountList().add(account);
-    }
-
-
-    public User findById(int id) {
-        return userList.stream().filter(s -> s.getId() == id)
-                .findAny().orElseThrow(() -> new NoSuchElementException("Пользователь не найден"));
-    }
-
-    public User findUserByAccount(int accountId) {
-        return userList.stream()
-                .filter(s -> s.getAccountList().stream()
-                        .anyMatch(q -> q.getId() == accountId))
-                .findFirst().orElseThrow(() -> new NoSuchElementException("Счёт не найден"));
-    }
-
 }

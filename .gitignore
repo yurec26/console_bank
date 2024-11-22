@@ -4,10 +4,9 @@ mvnw
 shelterFX.iml
 .mvn
 target/
-
 src/test/
-
-
+src/main/resources/META-INF
+out/
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
