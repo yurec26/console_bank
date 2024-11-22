@@ -1,21 +1,48 @@
 package org.example.model;
 
+import jakarta.persistence.*;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@Entity
+@Table(name = "users")
 public class User {
 
-    private final int id;
-    private final String login;
-    private final List<Account> accountList;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user-id")
+    private Long id;
 
-    public User(int id, String login, List<Account> accountList) {
-        this.id = id;
+    @Column(name = "login", unique = true, updatable = false)
+    private String login;
+
+    @Column(name = "account-list")
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    private List<Account> accountList = new ArrayList<>();
+
+
+    public User() {
+    }
+
+    public User(String login) {
         this.login = login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public void setAccountList(List<Account> accountList) {
         this.accountList = accountList;
     }
 
-    public int getId() {
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getId() {
         return id;
     }
 
@@ -41,7 +68,7 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id == user.id && Objects.equals(login, user.login);
+        return Objects.equals(id, user.id) && Objects.equals(login, user.login);
     }
 
     @Override

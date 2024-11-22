@@ -1,6 +1,7 @@
 package org.example.command;
 
 import org.example.constants.ConsoleOperationType;
+import org.example.model.Account;
 import org.example.service.AccountService;
 import org.springframework.stereotype.Component;
 
@@ -29,8 +30,8 @@ public class AccountTransferCommand implements OperationCommand {
         System.out.println("Введите сумму для пополнения: ");
         long amount = Long.parseLong((scanner.nextLine()));
         try {
-            accountService.transfer(idAccountFrom, idAccountTo, amount);
-            System.out.println("Деньги успешно переведены");
+            Account accountFrom =accountService.transfer(idAccountFrom, idAccountTo, amount);
+            System.out.printf("Деньги успешно переведены c аккаунта: %s%n", accountFrom);
         } catch (IllegalArgumentException | NoSuchElementException e) {
             System.out.println(e.getMessage());
         }
