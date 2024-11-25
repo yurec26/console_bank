@@ -1,24 +1,50 @@
 package org.example.model;
 
+import jakarta.persistence.*;
+
 import java.util.Objects;
 
+@Entity
+@Table(name = "accounts")
 public class Account {
-    private final int id;
-    private final int userId;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Column(name = "amount")
     private Long moneyAmount;
 
-    public Account(int id, int userId, Long moneyAmount) {
-        this.id = id;
-        this.userId = userId;
+    public Account() {
+    }
+
+    public Account(User user, Long moneyAmount) {
+        this.user = user;
         this.moneyAmount = moneyAmount;
     }
 
-    public int getId() {
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setUserId(User user) {
+        this.user = user;
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public int getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
+    }
+
+    public Long getUserId() {
+        return user.getId();
     }
 
     public Long getMoneyAmount() {
@@ -33,7 +59,7 @@ public class Account {
     public String toString() {
         return "Аккаунт (" +
                 "Id=" + id +
-                ", Id владельца=" + userId +
+                ", Id владельца=" + user.getId() +
                 ", Остаток =" + moneyAmount +
                 ')';
     }
@@ -43,11 +69,11 @@ public class Account {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Account account = (Account) o;
-        return id == account.id && userId == account.userId;
+        return Objects.equals(id, account.id) && user == account.user;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, userId);
+        return Objects.hash(id, user);
     }
 }
