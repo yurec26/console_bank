@@ -2,7 +2,11 @@ package org.example.util;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.springframework.stereotype.Component;
+
+import java.util.function.Supplier;
 
 @Component
 public class TransactionHelper {
@@ -12,17 +16,22 @@ public class TransactionHelper {
         this.sessionFactory = sessionFactory;
     }
 
-    public <T> T execute(TransactionalExecution<T> action) {
-        try (Session session = sessionFactory.openSession()) {
+    public <T> T execute(Supplier<T> action) {
+        Session session = sessionFactory.getCurrentSession();
+        Transaction transaction = session.getTransaction();
+        if (!transaction.getStatus().equals(TransactionStatus.NOT_ACTIVE)) {
+            return action.get();
+        }
+        try {
             session.beginTransaction();
-            try {
-                T result = action.execute(session);
-                session.getTransaction().commit();
-                return result;
-            } catch (Exception e) {
-                session.getTransaction().rollback();
-                throw e;
-            }
+            T returnValue = action.get();
+            transaction.commit();
+            return returnValue;
+        } catch (Exception e) {
+            transaction.rollback();
+            throw e;
+        } finally {
+            session.close();
         }
     }
 }

@@ -25,7 +25,7 @@ public class AccountDepositCommand implements OperationCommand {
     @Override
     public void execute() {
         System.out.println("Введите id счёта для пополнения: ");
-        int id = Integer.parseInt(scanner.nextLine());
+        Long id = Long.parseLong(scanner.nextLine());
         try {
             System.out.println("Введите сумму для пополнения: ");
             long amount = Long.parseLong(scanner.nextLine());

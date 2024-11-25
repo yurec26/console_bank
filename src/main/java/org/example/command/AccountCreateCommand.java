@@ -29,7 +29,7 @@ public class AccountCreateCommand implements OperationCommand {
         System.out.println("Введите id пользователя для создания нового счёта: ");
         Long id = Long.parseLong(scanner.nextLine());
         try {
-            Account account = userService.addAccountToUser(id);
+            Account account = accountService.addAccountToUser(id);
             System.out.printf("Новый аккаунт создан с id %s для пользователя с id %s%n",
                     account.getId(), account.getUserId());
         } catch (IllegalArgumentException | NoSuchElementException e) {

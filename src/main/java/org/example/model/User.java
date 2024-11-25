@@ -12,13 +12,13 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user-id")
+    @Column(name = "user_id")
     private Long id;
 
     @Column(name = "login", unique = true, updatable = false)
     private String login;
 
-    @Column(name = "account-list")
+    @Column(name = "account_list")
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     private List<Account> accountList = new ArrayList<>();
 

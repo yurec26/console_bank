@@ -24,9 +24,9 @@ public class AccountTransferCommand implements OperationCommand {
     @Override
     public void execute() {
         System.out.println("Введите id счёта для списания: ");
-        int idAccountFrom = Integer.parseInt(scanner.nextLine());
+        Long idAccountFrom = Long.parseLong(scanner.nextLine());
         System.out.println("Введите id счёта для пополнения: ");
-        int idAccountTo = Integer.parseInt(scanner.nextLine());
+        Long idAccountTo = Long.parseLong(scanner.nextLine());
         System.out.println("Введите сумму для пополнения: ");
         long amount = Long.parseLong((scanner.nextLine()));
         try {

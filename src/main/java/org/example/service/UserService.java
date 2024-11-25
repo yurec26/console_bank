@@ -3,6 +3,9 @@ package org.example.service;
 import org.example.model.Account;
 import org.example.model.User;
 import org.example.util.TransactionHelper;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -14,22 +17,26 @@ public class UserService {
 
     private final AccountService accountService;
     private final TransactionHelper transactionHelper;
+    private final SessionFactory sessionFactory;
 
 
     public UserService(AccountService accountService,
-                       TransactionHelper transactionHelper) {
+                       TransactionHelper transactionHelper, SessionFactory sessionFactory) {
         this.accountService = accountService;
         this.transactionHelper = transactionHelper;
+        this.sessionFactory = sessionFactory;
     }
 
     public List<User> getAll() {
-        return transactionHelper.execute(session -> session
-                .createQuery("SELECT s FROM User s", User.class)
+        Session session = sessionFactory.getCurrentSession();
+        return transactionHelper.execute(() -> session
+                .createQuery("SELECT u FROM User u JOIN FETCH u.accountList a", User.class)
                 .list());
     }
 
     public User createUser(String login) {
-        return transactionHelper.execute(session -> {
+        Session session = sessionFactory.getCurrentSession();
+        return transactionHelper.execute(() -> {
             try {
                 User user = new User(login);
                 session.persist(user);
@@ -38,25 +45,22 @@ public class UserService {
                 session.flush();
                 session.refresh(user);
                 return user;
-            } catch (Exception e) {
+            } catch (ConstraintViolationException ex) {
                 throw new IllegalArgumentException("Такой логин уже занят");
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Ошибка при создании пользователя: " + e.getMessage());
             }
         });
     }
 
-    public Account addAccountToUser(Long userId) {
-        return transactionHelper.execute(session -> {
-            User user = session.get(User.class, userId);
-            if (user != null){
-                Account account = accountService.create(user);
-                session.persist(account);
-                session.merge(user);
-                session.flush();
-                session.refresh(account);
-                return account;
-            } else {
-                throw new IllegalArgumentException("Такой пользователь не найден");
-            }
-        });
+    public User getUserById(Long id) {
+        Session session = sessionFactory.getCurrentSession();
+        User user = transactionHelper.execute(() -> session.get(User.class, id));
+        if (user != null) {
+            return user;
+        } else {
+            throw new IllegalArgumentException("Пользователь с id %s не найден".formatted(id));
+        }
     }
+
 }

@@ -23,7 +23,7 @@ public class AccountWithdrawCommand implements OperationCommand {
     @Override
     public void execute() {
         System.out.println("Введите id счёта для списания: ");
-        int id = Integer.parseInt(scanner.nextLine());
+        Long id = Long.parseLong(scanner.nextLine());
         System.out.println("Введите сумму для списания: ");
         long amount = Long.parseLong(scanner.nextLine());
         try {
