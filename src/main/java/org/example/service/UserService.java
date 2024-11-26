@@ -2,60 +2,65 @@ package org.example.service;
 
 import org.example.model.Account;
 import org.example.model.User;
+import org.example.util.TransactionHelper;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 
 @Component
 public class UserService {
 
-    private final List<User> userList = new ArrayList<>();
 
-    private static int idCounter = 1;
     private final AccountService accountService;
+    private final TransactionHelper transactionHelper;
+    private final SessionFactory sessionFactory;
 
-    public UserService(AccountService accountService) {
+
+    public UserService(AccountService accountService,
+                       TransactionHelper transactionHelper, SessionFactory sessionFactory) {
         this.accountService = accountService;
+        this.transactionHelper = transactionHelper;
+        this.sessionFactory = sessionFactory;
     }
 
     public List<User> getAll() {
-        return userList;
+        Session session = sessionFactory.getCurrentSession();
+        return transactionHelper.execute(() -> session
+                .createQuery("SELECT u FROM User u JOIN FETCH u.accountList a", User.class)
+                .list());
     }
 
     public User createUser(String login) {
-        userList.stream().filter(s -> s.getLogin().equals(login)).findAny()
-                .ifPresent(s -> {
-                    throw new IllegalArgumentException("Имя учётной записи занято");
-                });
-        var newUser = new User(idCounter, login, new ArrayList<>());
-        userList.add(newUser);
-        accountService.create(newUser.getId());
-        idCounter++;
-        return newUser;
+        Session session = sessionFactory.getCurrentSession();
+        return transactionHelper.execute(() -> {
+            try {
+                User user = new User(login);
+                session.persist(user);
+                Account account = accountService.create(user);
+                session.persist(account);
+                session.flush();
+                session.refresh(user);
+                return user;
+            } catch (ConstraintViolationException ex) {
+                throw new IllegalArgumentException("Такой логин уже занят");
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Ошибка при создании пользователя: " + e.getMessage());
+            }
+        });
     }
 
-    public void closeAccount(User user, Account account) {
-        user.getAccountList().remove(account);
-    }
-
-    public void addAccountToUser(Account account, User user) {
-        user.getAccountList().add(account);
-    }
-
-
-    public User findById(int id) {
-        return userList.stream().filter(s -> s.getId() == id)
-                .findAny().orElseThrow(() -> new NoSuchElementException("Пользователь не найден"));
-    }
-
-    public User findUserByAccount(int accountId) {
-        return userList.stream()
-                .filter(s -> s.getAccountList().stream()
-                        .anyMatch(q -> q.getId() == accountId))
-                .findFirst().orElseThrow(() -> new NoSuchElementException("Счёт не найден"));
+    public User getUserById(Long id) {
+        Session session = sessionFactory.getCurrentSession();
+        User user = transactionHelper.execute(() -> session.get(User.class, id));
+        if (user != null) {
+            return user;
+        } else {
+            throw new IllegalArgumentException("Пользователь с id %s не найден".formatted(id));
+        }
     }
 
 }

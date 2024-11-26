@@ -4,8 +4,6 @@ import org.example.constants.ConsoleOperationType;
 import org.example.service.UserService;
 import org.springframework.stereotype.Component;
 
-import java.util.Scanner;
-
 @Component
 public class ShowAllUsersCommand implements OperationCommand {
 

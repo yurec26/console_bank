@@ -1,6 +1,7 @@
 package org.example.command;
 
 import org.example.constants.ConsoleOperationType;
+import org.example.model.Account;
 import org.example.service.AccountService;
 import org.springframework.stereotype.Component;
 
@@ -22,12 +23,12 @@ public class AccountWithdrawCommand implements OperationCommand {
     @Override
     public void execute() {
         System.out.println("Введите id счёта для списания: ");
-        int id = Integer.parseInt(scanner.nextLine());
+        Long id = Long.parseLong(scanner.nextLine());
         System.out.println("Введите сумму для списания: ");
         long amount = Long.parseLong(scanner.nextLine());
         try {
-            accountService.withdraw(id, amount);
-            System.out.println("Деньги успешно сняты");
+            Account account = accountService.withdraw(id, amount);
+            System.out.printf("Деньги успешно сняты со счёта %s%n", account);
         } catch (NoSuchElementException | IllegalArgumentException e) {
             System.out.println(e.getMessage());
         }

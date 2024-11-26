@@ -1,6 +1,7 @@
 package org.example.command;
 
 import org.example.constants.ConsoleOperationType;
+import org.example.model.Account;
 import org.example.service.AccountService;
 import org.springframework.stereotype.Component;
 
@@ -24,12 +25,16 @@ public class AccountDepositCommand implements OperationCommand {
     @Override
     public void execute() {
         System.out.println("Введите id счёта для пополнения: ");
-        int id = Integer.parseInt(scanner.nextLine());
+        Long id = Long.parseLong(scanner.nextLine());
         try {
             System.out.println("Введите сумму для пополнения: ");
             long amount = Long.parseLong(scanner.nextLine());
-            accountService.deposit(id, amount);
-            System.out.printf("счёт с id %s пополнен на %s%n", id, amount);
+            if (amount>0){
+                Account account = accountService.deposit(id, amount);
+                System.out.printf("счёт пополнен %s%n", account);
+            } else {
+                throw new IllegalArgumentException("Введите положительное число");
+            }
         } catch (IllegalArgumentException | NoSuchElementException e) {
             System.out.println(e.getMessage());
         }

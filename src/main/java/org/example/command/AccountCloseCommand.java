@@ -1,6 +1,7 @@
 package org.example.command;
 
 import org.example.constants.ConsoleOperationType;
+import org.example.model.Account;
 import org.example.service.AccountService;
 import org.springframework.stereotype.Component;
 
@@ -22,10 +23,10 @@ public class AccountCloseCommand implements OperationCommand {
     @Override
     public void execute() {
         System.out.println("Введите id счёта для закрытия: ");
-        int accountIdToClose = Integer.parseInt(scanner.nextLine());
+        Long accountIdToClose = Long.parseLong(scanner.nextLine());
         try {
-            accountService.close(accountIdToClose);
-            System.out.printf("Счёт закрыт : %s%n", accountIdToClose);
+            Account account = accountService.close(accountIdToClose);
+            System.out.printf("Счёт закрыт, баланс переведё на счёт : %s%n", account);
         } catch (NoSuchElementException | IllegalArgumentException e) {
             System.out.println(e.getMessage());
         }
